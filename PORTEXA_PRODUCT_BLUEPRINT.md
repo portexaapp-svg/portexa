@@ -9,3 +9,10 @@ Empower global importers with AI.
 
 Vision:
 Become the world's most trusted AI workspace for importers.
+## Core Values
+
+- Trust
+- Innovation
+- Simplicity
+- Transparency
+- Efficiency
