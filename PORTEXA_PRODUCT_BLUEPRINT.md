@@ -16,3 +16,4 @@ Become the world's most trusted AI workspace for importers.
 - Simplicity
 - Transparency
 - Efficiency
+## Core Values
