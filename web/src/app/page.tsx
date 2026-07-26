@@ -25,7 +25,7 @@ export default function Home() {
           for Global Importers
         </h2>
 
-        <p className="max-w-3xl text-xl text-gray-500 mb-12">
+        <main className="min-h-screen bg-gradient-to-b from-white to-slate-100 text-gray-900"></main>
           Find suppliers, compare quotations, organize shipments,
           manage documents and grow your importing business with AI.
         </p>
