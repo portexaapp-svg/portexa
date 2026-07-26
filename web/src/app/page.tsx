@@ -1,45 +1,31 @@
-export default function Home() {
-  return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <nav className="flex items-center justify-between px-10 py-6 border-b">
-        <h1 className="text-3xl font-bold text-blue-600">
-          Portexa
-        </h1>
+<section className="max-w-6xl mx-auto text-center pt-24 pb-20 px-8">
 
-        <div className="flex gap-8 text-gray-600">
-          <a href="#">Features</a>
-          <a href="#">Pricing</a>
-          <a href="#">About</a>
-          <a href="#">Contact</a>
-        </div>
+  <p className="uppercase tracking-[0.35em] text-blue-600 font-semibold mb-6">
+    AI FOR GLOBAL TRADE
+  </p>
 
-        <button className="bg-blue-600 text-white px-5 py-2 rounded-lg">
-          Sign In
-        </button>
-      </nav>
+  <h2 className="text-7xl font-bold leading-tight">
+    Import Smarter.
+    <br />
+    Grow Faster.
+  </h2>
 
-      <section className="flex flex-col items-center justify-center text-center px-8 py-24">
-        <h2 className="text-6xl font-bold mb-6">
-          The AI Workspace
-          <br />
-          for Global Importers
-        </h2>
+  <p className="text-xl text-gray-500 max-w-3xl mx-auto mt-8">
+    Portexa helps importers find suppliers,
+    compare quotations,
+    organise shipments,
+    and manage trade documents
+    with Artificial Intelligence.
+  </p>
 
-        <main className="min-h-screen bg-gradient-to-b from-white to-slate-100 text-gray-900"></main>
-          Find suppliers, compare quotations, organize shipments,
-          manage documents and grow your importing business with AI.
-        </p>
+  <div className="flex justify-center gap-6 mt-12">
+    <button className="rounded-full bg-black text-white px-8 py-4 text-lg">
+      Start Free
+    </button>
 
-        <div className="flex gap-5">
-          <button className="bg-blue-600 text-white px-8 py-4 rounded-xl">
-            Get Started
-          </button>
+    <button className="rounded-full border px-8 py-4 text-lg">
+      Watch Demo
+    </button>
+  </div>
 
-          <button className="border px-8 py-4 rounded-xl">
-            Book Demo
-          </button>
-        </div>
-      </section>
-    </main>
-  );
-}
+</section>
