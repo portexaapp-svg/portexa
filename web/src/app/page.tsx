@@ -1,4 +1,5 @@
-export default function Home() {
+
+import Navbar from "../components/Navbar";export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
 
@@ -55,7 +56,7 @@ export default function Home() {
           <div className="bg-white rounded-3xl shadow-lg p-8">
             <div className="text-5xl mb-4">🚢</div>
             <h3 className="text-2xl font-bold mb-3">Shipment AI</h3>
-            <p className="text-gray-600">
+            <p  className="text-gray-600">
               Track every shipment in one intelligent dashboard.
             </p>
           </div>
