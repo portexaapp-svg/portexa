@@ -1,7 +1,77 @@
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <h1 className="text-5xl font-bold">Portexa</h1>
+    <main className="min-h-screen bg-gray-50 text-gray-900">
+
+      {/* Hero */}
+      <section className="max-w-7xl mx-auto px-8 py-24 text-center">
+
+        <h1 className="text-6xl font-extrabold mb-6">
+          Portexa
+        </h1>
+
+        <h2 className="text-3xl font-semibold text-gray-700 mb-8">
+          AI Workspace for Global Importers
+        </h2>
+
+        <p className="text-xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
+          Find suppliers, compare quotations, organise shipments,
+          manage trade documents and automate importing with Artificial Intelligence.
+        </p>
+
+        <div className="flex justify-center gap-6 mt-12">
+          <button className="bg-black text-white px-8 py-4 rounded-full text-lg hover:scale-105 transition">
+            Start Free
+          </button>
+
+          <button className="border border-gray-300 px-8 py-4 rounded-full text-lg hover:bg-gray-100 transition">
+            Watch Demo
+          </button>
+        </div>
+
+      </section>
+
+      {/* Features */}
+
+      <section className="max-w-7xl mx-auto px-8 pb-24">
+
+        <div className="grid md:grid-cols-4 gap-8">
+
+          <div className="bg-white rounded-3xl shadow-lg p-8">
+            <div className="text-5xl mb-4">🏭</div>
+            <h3 className="text-2xl font-bold mb-3">Supplier AI</h3>
+            <p className="text-gray-600">
+              Discover verified manufacturers worldwide in seconds.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-lg p-8">
+            <div className="text-5xl mb-4">💰</div>
+            <h3 className="text-2xl font-bold mb-3">Quotation AI</h3>
+            <p className="text-gray-600">
+              Compare supplier quotations automatically.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-lg p-8">
+            <div className="text-5xl mb-4">🚢</div>
+            <h3 className="text-2xl font-bold mb-3">Shipment AI</h3>
+            <p className="text-gray-600">
+              Track every shipment in one intelligent dashboard.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-lg p-8">
+            <div className="text-5xl mb-4">📄</div>
+            <h3 className="text-2xl font-bold mb-3">Document AI</h3>
+            <p className="text-gray-600">
+              Organise invoices, packing lists and customs documents automatically.
+            </p>
+          </div>
+
+        </div>
+
+      </section>
+
     </main>
   );
 }
