@@ -1,19 +1,18 @@
 export default function Navbar() {
   return (
-    <nav className="w-full bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
+    <nav className="w-full border-b bg-white">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-4">
+        <h1 className="text-2xl font-bold">Portexa</h1>
 
-        <h1 className="text-2xl font-bold">
-          Portexa
-        </h1>
-
-        <div className="flex gap-8">
-          <a href="#">Features</a>
-          <a href="#">Pricing</a>
-          <a href="#">About</a>
-          <a href="/dashboard">Dashboard</a>
+        <div className="flex gap-6">
+          <a href="#" className="hover:text-blue-600">Features</a>
+          <a href="#" className="hover:text-blue-600">Pricing</a>
+          <a href="#" className="hover:text-blue-600">Contact</a>
         </div>
 
+        <button className="bg-black text-white px-5 py-2 rounded-full">
+          Sign In
+        </button>
       </div>
     </nav>
   );
