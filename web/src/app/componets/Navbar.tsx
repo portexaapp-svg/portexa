@@ -5,9 +5,9 @@ export default function Navbar() {
         <h1 className="text-2xl font-bold">Portexa</h1>
 
         <div className="flex gap-6">
-          <a href="#" className="hover:text-blue-600">Features</a>
-          <a href="#" className="hover:text-blue-600">Pricing</a>
-          <a href="#" className="hover:text-blue-600">Contact</a>
+          <a href="#">Features</a>
+          <a href="#">Pricing</a>
+          <a href="#">Contact</a>
         </div>
 
         <button className="bg-black text-white px-5 py-2 rounded-full">
