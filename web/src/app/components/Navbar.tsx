@@ -1,22 +1,32 @@
+import Link from "next/link";
+
 export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-5">
 
-        <div className="text-3xl font-extrabold">
+        <Link href="/" className="text-3xl font-extrabold">
           🚢 Portexa
-        </div>
+        </Link>
 
         <div className="hidden md:flex gap-8 font-medium">
-          <a href="#">Features</a>
-          <a href="#">Pricing</a>
-          <a href="#">Dashboard</a>
-          <a href="#">Contact</a>
+
+          <Link href="/">Home</Link>
+
+          <Link href="/dashboard">Dashboard</Link>
+
+          <Link href="/pricing">Pricing</Link>
+
+          <Link href="/contact">Contact</Link>
+
         </div>
 
-        <button className="rounded-full bg-black px-6 py-3 text-white hover:bg-gray-800 transition">
-          Start Free
-        </button>
+        <Link
+          href="/login"
+          className="rounded-full bg-black px-6 py-3 text-white hover:bg-gray-800 transition"
+        >
+          Sign In
+        </Link>
 
       </div>
     </nav>
