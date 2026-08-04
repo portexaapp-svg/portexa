@@ -5,6 +5,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 text-gray-900">
       <Navbar />
 
+      {/* Hero */}
       <section className="max-w-7xl mx-auto px-8 py-24 text-center">
         <h1 className="text-6xl font-extrabold mb-6">
           Portexa
@@ -19,19 +20,21 @@ export default function Home() {
           manage trade documents and automate importing with Artificial Intelligence.
         </p>
 
-       <div className="flex justify-center gap-6 mt-12">
-  <a
-    href="/dashboard"
-    className="bg-black text-white px-8 py-4 rounded-full text-lg hover:scale-105 transition inline-block"
-  >
-    Start Free
-  </a>
+        <div className="flex justify-center gap-6 mt-12">
+          <a
+            href="/dashboard"
+            className="bg-black text-white px-8 py-4 rounded-full text-lg hover:scale-105 transition inline-block"
+          >
+            Start Free
+          </a>
 
-  <button className="border border-gray-300 px-8 py-4 rounded-full text-lg">
-    Watch Demo
-  </button>
-</div>
+          <button className="border border-gray-300 px-8 py-4 rounded-full text-lg hover:bg-gray-100 transition">
+            Watch Demo
+          </button>
+        </div>
+      </section>
 
+      {/* Features */}
       <section className="max-w-7xl mx-auto px-8 pb-24">
         <div className="grid md:grid-cols-4 gap-8">
 
