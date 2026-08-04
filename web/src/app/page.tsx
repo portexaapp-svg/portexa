@@ -19,16 +19,18 @@ export default function Home() {
           manage trade documents and automate importing with Artificial Intelligence.
         </p>
 
-        <div className="flex justify-center gap-6 mt-12">
-          <button className="bg-black text-white px-8 py-4 rounded-full text-lg">
-            Start Free
-          </button>
+       <div className="flex justify-center gap-6 mt-12">
+  <a
+    href="/dashboard"
+    className="bg-black text-white px-8 py-4 rounded-full text-lg hover:scale-105 transition inline-block"
+  >
+    Start Free
+  </a>
 
-          <button className="border border-gray-300 px-8 py-4 rounded-full text-lg">
-            Watch Demo
-          </button>
-        </div>
-      </section>
+  <button className="border border-gray-300 px-8 py-4 rounded-full text-lg">
+    Watch Demo
+  </button>
+</div>
 
       <section className="max-w-7xl mx-auto px-8 pb-24">
         <div className="grid md:grid-cols-4 gap-8">
