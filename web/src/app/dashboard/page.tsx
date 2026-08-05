@@ -1,3 +1,5 @@
+import Welcome from "../components/Welcome";
+import QuickActions from "../components/QuickActions";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import StatCard from "../components/StatCard";
