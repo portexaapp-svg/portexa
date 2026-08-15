@@ -3,34 +3,70 @@
 import Link from "next/link";
 import { useState } from "react";
 
-export default function RFQPage() {
+export default function CreateRFQPage() {
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
+  if (submitted) {
+    return (
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center px-6">
+        <div className="bg-white rounded-3xl shadow-xl p-12 text-center max-w-lg w-full">
+
+          <div className="text-6xl mb-6">
+            ✅
+          </div>
+
+          <h1 className="text-3xl font-bold">
+            RFQ Created
+          </h1>
+
+          <p className="text-gray-500 mt-4">
+            Your RFQ has been created successfully and is ready
+            to be sent to suppliers.
+          </p>
+
+          <div className="flex justify-center gap-4 mt-8">
+
+            <Link
+              href="/rfqs"
+              className="bg-black text-white px-6 py-3 rounded-xl"
+            >
+              View RFQs
+            </Link>
+
+            <button
+              onClick={() => setSubmitted(false)}
+              className="border border-gray-300 px-6 py-3 rounded-xl"
+            >
+              Create Another
+            </button>
+
+          </div>
+
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-100">
 
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="max-w-5xl mx-auto px-8 py-8">
 
           <Link
-            href="/dashboard"
+            href="/rfqs"
             className="text-sm text-gray-500 hover:text-black"
           >
-            ← Back to Dashboard
+            ← Back to RFQs
           </Link>
 
           <h1 className="text-4xl font-extrabold mt-4">
             Create RFQ
           </h1>
 
-          <p className="text-gray-500 mt-2 text-lg">
-            Create a Request for Quotation and send it to suppliers.
+          <p className="text-gray-500 mt-2">
+            Send a professional quotation request to suppliers.
           </p>
 
         </div>
@@ -39,194 +75,164 @@ export default function RFQPage() {
       {/* Form */}
       <section className="max-w-5xl mx-auto px-8 py-10">
 
-        {submitted ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSubmitted(true);
+          }}
+          className="bg-white rounded-3xl shadow-lg p-8"
+        >
 
-          <div className="bg-white rounded-3xl shadow-lg p-12 text-center">
+          {/* Product */}
+          <h2 className="text-2xl font-bold mb-6">
+            Product Information
+          </h2>
 
-            <div className="text-6xl mb-6">
-              ✅
+          <div className="grid md:grid-cols-2 gap-6">
+
+            <div>
+              <label className="block font-semibold mb-2">
+                Product Name
+              </label>
+
+              <input
+                required
+                placeholder="e.g. Cosmetic Bottles"
+                className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-black"
+              />
             </div>
 
-            <h2 className="text-3xl font-bold">
-              RFQ Created Successfully
-            </h2>
+            <div>
+              <label className="block font-semibold mb-2">
+                Quantity
+              </label>
 
-            <p className="text-gray-500 mt-4 text-lg">
-              Your quotation request has been created and is ready
-              to be sent to suppliers.
-            </p>
+              <input
+                required
+                type="number"
+                placeholder="e.g. 10000"
+                className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
 
-            <div className="flex justify-center gap-4 mt-8">
+          </div>
 
-              <button
-                onClick={() => setSubmitted(false)}
-                className="border border-gray-300 px-6 py-3 rounded-xl hover:bg-gray-100"
-              >
-                Create Another RFQ
-              </button>
+          {/* Commercial */}
+          <h2 className="text-2xl font-bold mt-10 mb-6">
+            Commercial Requirements
+          </h2>
 
-              <Link
-                href="/dashboard"
-                className="bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800"
-              >
-                Go to Dashboard
-              </Link>
+          <div className="grid md:grid-cols-2 gap-6">
+
+            <div>
+              <label className="block font-semibold mb-2">
+                Target Price
+              </label>
+
+              <input
+                placeholder="e.g. €0.50 per unit"
+                className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-2">
+                Delivery Country
+              </label>
+
+              <select className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white">
+                <option>Germany</option>
+                <option>Saudi Arabia</option>
+                <option>Egypt</option>
+                <option>United Arab Emirates</option>
+                <option>United States</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-2">
+                Incoterm
+              </label>
+
+              <select className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white">
+                <option>EXW</option>
+                <option>FCA</option>
+                <option>FOB</option>
+                <option>CIF</option>
+                <option>DAP</option>
+                <option>DDP</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-2">
+                Required Delivery Date
+              </label>
+
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+          </div>
+
+          {/* Requirements */}
+          <h2 className="text-2xl font-bold mt-10 mb-6">
+            Product Specifications
+          </h2>
+
+          <textarea
+            rows={6}
+            placeholder="Describe specifications, materials, packaging, certifications, quality requirements, private label requirements, etc."
+            className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-black"
+          />
+
+          {/* AI */}
+          <div className="mt-8 bg-gray-50 rounded-2xl p-6">
+
+            <div className="flex gap-4">
+
+              <div className="text-4xl">
+                🤖
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg">
+                  Portexa AI Optimization
+                </h3>
+
+                <p className="text-gray-500 mt-1">
+                  Portexa AI will analyze your RFQ and help
+                  identify missing information before you send it
+                  to suppliers.
+                </p>
+              </div>
 
             </div>
 
           </div>
 
-        ) : (
+          {/* Buttons */}
+          <div className="flex gap-4 mt-8">
 
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white rounded-3xl shadow-lg p-8"
-          >
+            <Link
+              href="/rfqs"
+              className="border border-gray-300 px-7 py-4 rounded-xl hover:bg-gray-100"
+            >
+              Cancel
+            </Link>
 
-            {/* Product */}
-            <h2 className="text-2xl font-bold mb-6">
-              Product Information
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              <div>
-                <label className="block font-semibold mb-2">
-                  Product Name
-                </label>
-
-                <input
-                  required
-                  type="text"
-                  placeholder="e.g. Cosmetic bottles"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-4 focus:ring-2 focus:ring-black outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">
-                  Quantity
-                </label>
-
-                <input
-                  required
-                  type="number"
-                  placeholder="e.g. 10000"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-4 focus:ring-2 focus:ring-black outline-none"
-                />
-              </div>
-
-            </div>
-
-            {/* Commercial Requirements */}
-            <h2 className="text-2xl font-bold mt-10 mb-6">
-              Commercial Requirements
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              <div>
-                <label className="block font-semibold mb-2">
-                  Target Price
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="e.g. €0.50 per unit"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-4 focus:ring-2 focus:ring-black outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">
-                  Delivery Country
-                </label>
-
-                <select className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white">
-                  <option>Germany</option>
-                  <option>Saudi Arabia</option>
-                  <option>Egypt</option>
-                  <option>United Arab Emirates</option>
-                  <option>United States</option>
-                  <option>United Kingdom</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">
-                  Incoterm
-                </label>
-
-                <select className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white">
-                  <option>EXW</option>
-                  <option>FCA</option>
-                  <option>FOB</option>
-                  <option>CIF</option>
-                  <option>DAP</option>
-                  <option>DDP</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">
-                  Required Delivery Date
-                </label>
-
-                <input
-                  type="date"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-4 focus:ring-2 focus:ring-black outline-none"
-                />
-              </div>
-
-            </div>
-
-            {/* Additional Requirements */}
-            <h2 className="text-2xl font-bold mt-10 mb-6">
-              Additional Requirements
-            </h2>
-
-            <textarea
-              rows={6}
-              placeholder="Describe specifications, certifications, packaging requirements, quality standards, private label requirements, etc."
-              className="w-full border border-gray-300 rounded-xl px-4 py-4 focus:ring-2 focus:ring-black outline-none"
-            />
-
-            {/* AI */}
-            <div className="mt-8 bg-gray-50 rounded-2xl p-6">
-
-              <div className="flex items-start gap-4">
-
-                <div className="text-4xl">
-                  🤖
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg">
-                    Portexa AI
-                  </h3>
-
-                  <p className="text-gray-500 mt-1">
-                    Portexa AI will help optimize your RFQ,
-                    identify missing information and prepare it
-                    for suppliers.
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* Submit */}
             <button
               type="submit"
-              className="mt-8 bg-black text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-800 transition"
+              className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800"
             >
               📄 Create RFQ
             </button>
 
-          </form>
+          </div>
 
-        )}
+        </form>
 
       </section>
 
