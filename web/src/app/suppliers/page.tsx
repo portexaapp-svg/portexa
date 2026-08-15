@@ -3,12 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 
-const suppliers = [
+type Supplier = {
+  name: string;
+  country: string;
+  flag: string;
+  description: string;
+};
+
+const suppliers: Supplier[] = [
   {
     name: "Global Packaging GmbH",
     country: "Germany",
     flag: "🇩🇪",
-    type: "Manufacturer",
     description:
       "Cosmetic packaging manufacturer specializing in bottles, jars and containers.",
   },
@@ -16,7 +22,6 @@ const suppliers = [
     name: "Shenzhen Beauty Pack",
     country: "China",
     flag: "🇨🇳",
-    type: "Manufacturer",
     description:
       "OEM and private-label packaging supplier for international brands.",
   },
@@ -24,32 +29,21 @@ const suppliers = [
     name: "Anatolia Cosmetics",
     country: "Turkey",
     flag: "🇹🇷",
-    type: "Manufacturer",
     description:
-      "Cosmetic manufacturer offering private-label and custom production.",
+      "Cosmetic manufacturer offering private label and custom production.",
   },
 ];
 
 export default function SuppliersPage() {
   const [product, setProduct] = useState("");
   const [country, setCountry] = useState("Any country");
-  const [type, setType] = useState("Manufacturer");
+  const [supplierType, setSupplierType] = useState("Manufacturer");
   const [budget, setBudget] = useState("Any budget");
   const [searched, setSearched] = useState(false);
 
-  const filteredSuppliers = suppliers.filter((supplier) => {
-    const matchesCountry =
-      country === "Any country" || supplier.country === country;
-
-    const matchesType =
-      type === "Any type" || supplier.type === type;
-
-    return matchesCountry && matchesType;
-  });
-
-  function handleSearch() {
+  const handleSearch = () => {
     setSearched(true);
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gray-100">
@@ -124,22 +118,21 @@ export default function SuppliersPage() {
               </select>
             </div>
 
-            {/* Type */}
+            {/* Supplier Type */}
             <div>
               <label className="block font-semibold mb-2">
                 Supplier Type
               </label>
 
               <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
+                value={supplierType}
+                onChange={(e) => setSupplierType(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white"
               >
                 <option>Manufacturer</option>
                 <option>Wholesaler</option>
                 <option>Distributor</option>
                 <option>Trading Company</option>
-                <option>Any type</option>
               </select>
             </div>
 
@@ -164,6 +157,7 @@ export default function SuppliersPage() {
 
           </div>
 
+          {/* Search Button */}
           <button
             onClick={handleSearch}
             className="mt-8 bg-black text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-800 transition"
@@ -178,73 +172,67 @@ export default function SuppliersPage() {
           <div className="mt-10">
 
             <div className="flex items-center justify-between mb-6">
+
               <div>
                 <h2 className="text-2xl font-bold">
-                  AI Supplier Recommendations
+                  AI Recommended Suppliers
                 </h2>
 
                 <p className="text-gray-500 mt-1">
                   {product
-                    ? `Suppliers related to "${product}"`
-                    : "Enter a product to improve your search"}
+                    ? `Results for "${product}"`
+                    : "Recommended suppliers based on your requirements"}
                 </p>
               </div>
 
-              <span className="bg-black text-white px-4 py-2 rounded-full text-sm">
-                AI Search
-              </span>
+              <div className="bg-black text-white px-4 py-2 rounded-full text-sm">
+                🤖 AI Match
+              </div>
+
             </div>
 
-            {filteredSuppliers.length === 0 ? (
-              <div className="bg-white rounded-3xl shadow-md p-10 text-center">
-                <div className="text-5xl mb-4">🔎</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                <h3 className="text-xl font-bold">
-                  No matching suppliers yet
-                </h3>
+              {suppliers.map((supplier) => (
 
-                <p className="text-gray-500 mt-2">
-                  Try another country or supplier type.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div
+                  key={supplier.name}
+                  className="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl transition"
+                >
 
-                {filteredSuppliers.map((supplier) => (
-                  <div
-                    key={supplier.name}
-                    className="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl transition"
-                  >
+                  <div className="text-4xl mb-4">
+                    🏭
+                  </div>
 
-                    <div className="text-4xl mb-4">
-                      🏭
-                    </div>
+                  <h3 className="text-xl font-bold">
+                    {supplier.name}
+                  </h3>
 
-                    <h3 className="text-xl font-bold">
-                      {supplier.name}
-                    </h3>
+                  <p className="text-gray-500 mt-2">
+                    {supplier.flag} {supplier.country}
+                  </p>
 
-                    <p className="text-gray-500 mt-2">
-                      {supplier.flag} {supplier.country}
-                    </p>
+                  <p className="text-gray-600 mt-4">
+                    {supplier.description}
+                  </p>
 
-                    <span className="inline-block bg-gray-100 px-3 py-1 rounded-full text-sm mt-3">
-                      {supplier.type}
-                    </span>
+                  <div className="mt-5 flex gap-3">
 
-                    <p className="text-gray-600 mt-4">
-                      {supplier.description}
-                    </p>
-
-                    <button className="mt-5 w-full border border-gray-300 px-5 py-3 rounded-xl hover:bg-gray-100 transition">
+                    <button className="border border-gray-300 px-5 py-3 rounded-xl hover:bg-gray-100">
                       View Supplier
                     </button>
 
-                  </div>
-                ))}
+                    <button className="bg-black text-white px-5 py-3 rounded-xl hover:bg-gray-800">
+                      Request Quote
+                    </button>
 
-              </div>
-            )}
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
 
           </div>
         )}
