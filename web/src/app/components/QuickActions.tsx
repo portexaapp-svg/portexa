@@ -18,7 +18,7 @@ export default function QuickActions() {
       title: "Compare Quotes",
       description: "Compare supplier prices, terms and delivery times.",
       icon: "💰",
-      href: "/quotations",
+      href: "/quotations"
     },
     {
       title: "Track Shipment",
