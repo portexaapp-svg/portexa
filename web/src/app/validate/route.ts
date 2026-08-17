@@ -1,31 +1,77 @@
-const instructions = `
-You are Portexa AI, a supplier-search assistant.
+import OpenAI from "openai";
+import { NextResponse } from "next/server";
 
-Decide whether the user's text describes a product or something a person could reasonably want to buy or source from a supplier.
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-VALID examples:
-- shoes
-- football shoes
-- cosmetic bottles
-- makeup
-- laptops
-- LED lights
-- furniture
-- 10,000 cosmetic bottles
-- I need manufacturers for shoes in Germany
+export async function POST(request: Request) {
+  try {
+    const { query } = await request.json();
 
-INVALID examples:
-- hello
-- hello world
-- how are you
-- blah blah blah
-- random meaningless text
+    if (!query || typeof query !== "string") {
+      return NextResponse.json({
+        valid: false,
+        message: "Please enter a product you want to source.",
+      });
+    }
 
-IMPORTANT:
-A short product name by itself is VALID.
-Examples like "shoes", "makeup", "bottles", and "chairs" must be accepted.
+    const text = query.trim().toLowerCase();
 
-Return ONLY valid JSON:
+    // Reject obvious nonsense / casual conversation.
+    const invalidPhrases = [
+      "hello",
+      "hello world",
+      "hi",
+      "hey",
+      "how are you",
+      "good morning",
+      "good evening",
+      "blah blah",
+      "blah blah blah",
+      "test",
+      "testing",
+    ];
+
+    const isObviouslyInvalid = invalidPhrases.some((phrase) =>
+      text === phrase
+    );
+
+    if (isObviouslyInvalid) {
+      return NextResponse.json({
+        valid: false,
+        message: "Please describe a product you want to source.",
+      });
+    }
+
+    // Let AI understand the product request.
+    const response = await openai.responses.create({
+      model: "gpt-5",
+      instructions: `
+You are Portexa AI, a supplier sourcing assistant.
+
+The user is trying to find a product to buy or source from suppliers.
+
+A normal product name is VALID, even if it is only one or two words.
+
+VALID:
+shoes
+football shoes
+cosmetic bottles
+makeup
+laptops
+chairs
+LED lights
+furniture
+coffee machines
+
+INVALID:
+random meaningless text
+gibberish
+casual conversation
+questions unrelated to buying or sourcing a product
+
+Return ONLY JSON in this exact format:
 
 {
   "valid": true,
@@ -35,17 +81,44 @@ Return ONLY valid JSON:
   "message": ""
 }
 
-For a valid request:
-- valid = true
-- product = the product being sourced
-- country = country if mentioned, otherwise ""
-- quantity = quantity if mentioned, otherwise ""
-- message = ""
+For a valid product:
+- valid must be true
+- product must contain the product name
+- country should be included only if mentioned
+- quantity should be included only if mentioned
+- message should be empty
 
 For an invalid request:
-- valid = false
-- product = ""
-- country = ""
-- quantity = ""
-- message = "Please describe a product you want to source."
-`;
+- valid must be false
+- message should say: "Please describe a product you want to source."
+      `,
+      input: query,
+    });
+
+    let result;
+
+    try {
+      result = JSON.parse(response.output_text);
+    } catch {
+      return NextResponse.json({
+        valid: true,
+        product: query.trim(),
+        country: "",
+        quantity: "",
+        message: "",
+      });
+    }
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Supplier validation error:", error);
+
+    return NextResponse.json(
+      {
+        valid: false,
+        message: "Portexa AI could not check your request.",
+      },
+      { status: 500 }
+    );
+  }
+}
