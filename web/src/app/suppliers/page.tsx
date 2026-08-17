@@ -1,67 +1,177 @@
+
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 
 type Supplier = {
+  id: number;
   name: string;
   country: string;
-  flag: string;
-  description: string;
+  category: string;
+  rating: number;
+  verified: boolean;
 };
 
 type ValidationResult = {
   valid: boolean;
   product?: string;
-  quantity?: string;
   country?: string;
+  quantity?: string;
   message?: string;
 };
 
+const countries = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Argentina",
+  "Australia",
+  "Austria",
+  "Belgium",
+  "Brazil",
+  "Bulgaria",
+  "Canada",
+  "Chile",
+  "China",
+  "Colombia",
+  "Croatia",
+  "Cyprus",
+  "Czech Republic",
+  "Denmark",
+  "Egypt",
+  "Estonia",
+  "Finland",
+  "France",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Greece",
+  "Hungary",
+  "India",
+  "Indonesia",
+  "Ireland",
+  "Israel",
+  "Italy",
+  "Japan",
+  "Jordan",
+  "Kenya",
+  "Latvia",
+  "Lebanon",
+  "Lithuania",
+  "Luxembourg",
+  "Malaysia",
+  "Malta",
+  "Mexico",
+  "Morocco",
+  "Netherlands",
+  "New Zealand",
+  "Nigeria",
+  "Norway",
+  "Pakistan",
+  "Peru",
+  "Philippines",
+  "Poland",
+  "Portugal",
+  "Qatar",
+  "Romania",
+  "Saudi Arabia",
+  "Serbia",
+  "Singapore",
+  "Slovakia",
+  "Slovenia",
+  "South Africa",
+  "South Korea",
+  "Spain",
+  "Sweden",
+  "Switzerland",
+  "Thailand",
+  "Tunisia",
+  "Turkey",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States",
+  "Vietnam",
+  "Zambia",
+  "Zimbabwe",
+];
+
 const suppliers: Supplier[] = [
   {
-    name: "Global Packaging GmbH",
+    id: 1,
+    name: "Harare Footwear Manufacturing",
+    country: "Zimbabwe",
+    category: "Footwear",
+    rating: 4.8,
+    verified: true,
+  },
+  {
+    id: 2,
+    name: "Bulawayo Industrial Supply",
+    country: "Zimbabwe",
+    category: "Industrial Goods",
+    rating: 4.6,
+    verified: true,
+  },
+  {
+    id: 3,
+    name: "German Export Manufacturing",
     country: "Germany",
-    flag: "🇩🇪",
-    description:
-      "Cosmetic packaging manufacturer specializing in bottles, jars and containers.",
+    category: "Manufacturing",
+    rating: 4.9,
+    verified: true,
   },
   {
-    name: "Shenzhen Beauty Pack",
+    id: 4,
+    name: "Shanghai Global Footwear",
     country: "China",
-    flag: "🇨🇳",
-    description:
-      "OEM and private-label packaging supplier for international brands.",
+    category: "Footwear",
+    rating: 4.8,
+    verified: true,
   },
   {
-    name: "Anatolia Cosmetics",
+    id: 5,
+    name: "Istanbul Trade Supply",
     country: "Turkey",
-    flag: "🇹🇷",
-    description:
-      "Cosmetic manufacturer offering private label and custom production.",
+    category: "Wholesale",
+    rating: 4.7,
+    verified: true,
+  },
+  {
+    id: 6,
+    name: "Dubai Global Traders",
+    country: "United Arab Emirates",
+    category: "General Trading",
+    rating: 4.7,
+    verified: true,
   },
 ];
 
 export default function SuppliersPage() {
   const [product, setProduct] = useState("");
-  const [country, setCountry] = useState("Any country");
-  const [supplierType, setSupplierType] = useState("Manufacturer");
-  const [budget, setBudget] = useState("Any budget");
-
-  const [searched, setSearched] = useState(false);
+  const [country, setCountry] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [validated, setValidated] = useState(false);
+  const [result, setResult] = useState<ValidationResult | null>(null);
 
-  const handleSearch = async () => {
-    setErrorMessage("");
-    setSearched(false);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
     if (!product.trim()) {
-      setErrorMessage("Please enter the product you want to source.");
+      setResult({
+        valid: false,
+        message: "Please enter a product you want to source.",
+      });
+      setValidated(false);
       return;
     }
 
     setLoading(true);
+    setValidated(false);
+    setResult(null);
 
     try {
       const response = await fetch("/api/suppliers/validate", {
@@ -70,244 +180,255 @@ export default function SuppliersPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          query: product,
+          product: product.trim(),
+          country,
+          quantity: quantity.trim(),
         }),
       });
 
-      const result: ValidationResult = await response.json();
+      const data: ValidationResult = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(
-          result.message || "Something went wrong while checking your request."
-        );
-        return;
+        throw new Error(data.message || "Validation failed.");
       }
 
-      if (!result.valid) {
-        setErrorMessage(
-          result.message ||
-            "Please describe a real product you want to source."
-        );
-        return;
-      }
-
-      if (result.product) {
-        setProduct(result.product);
-      }
-
-      if (result.country) {
-        const countryExists = [
-          "Germany",
-          "China",
-          "Turkey",
-          "Egypt",
-          "India",
-          "Italy",
-          "United States",
-        ].includes(result.country);
-
-        if (countryExists) {
-          setCountry(result.country);
-        }
-      }
-
-      setSearched(true);
+      setResult(data);
+      setValidated(data.valid);
     } catch (error) {
-      console.error(error);
+      console.error("Supplier validation error:", error);
 
-      setErrorMessage(
-        "Portexa AI could not check your request. Please try again."
-      );
+      setResult({
+        valid: false,
+        message: "Portexa could not validate your request.",
+      });
+
+      setValidated(false);
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  const filteredSuppliers = suppliers.filter((supplier) => {
+    if (country && supplier.country !== country) {
+      return false;
+    }
+
+    const search = product.trim().toLowerCase();
+
+    if (!search) {
+      return true;
+    }
+
+    return (
+      supplier.category.toLowerCase().includes(search) ||
+      supplier.name.toLowerCase().includes(search)
+    );
+  });
 
   return (
-    <main className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-8 py-8">
-          <Link
-            href="/dashboard"
-            className="text-sm text-gray-500 hover:text-black"
-          >
-            ← Back to Dashboard
-          </Link>
-
-          <h1 className="text-4xl font-extrabold mt-4">
-            Supplier Finder
+    <main className="min-h-screen bg-gray-100 p-8">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Find Suppliers
           </h1>
 
-          <p className="text-gray-500 mt-2 text-lg">
-            Find manufacturers and suppliers worldwide with Portexa AI.
+          <p className="mt-2 text-gray-600">
+            Choose what you want to source and where you want your
+            supplier to be located.
           </p>
-        </div>
-      </div>
+        </header>
 
-      {/* Search */}
-      <section className="max-w-7xl mx-auto px-8 py-10">
-        <div className="bg-white rounded-3xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold mb-6">
-            What are you looking for?
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Product */}
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl bg-white p-6 shadow-sm"
+        >
+          <div className="grid gap-6 md:grid-cols-3">
             <div>
-              <label className="block font-semibold mb-2">
+              <label
+                htmlFor="product"
+                className="mb-2 block text-sm font-semibold text-gray-900"
+              >
                 Product
               </label>
 
               <input
-                type="text"
+                id="product"
                 value={product}
-                onChange={(e) => setProduct(e.target.value)}
-                placeholder="e.g. Cosmetic packaging"
-                className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-black"
+                onChange={(event) => setProduct(event.target.value)}
+                placeholder="e.g. shoes"
+                disabled={loading}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
               />
             </div>
 
-            {/* Country */}
             <div>
-              <label className="block font-semibold mb-2">
+              <label
+                htmlFor="country"
+                className="mb-2 block text-sm font-semibold text-gray-900"
+              >
                 Supplier Country
               </label>
 
               <select
+                id="country"
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white"
+                onChange={(event) => setCountry(event.target.value)}
+                disabled={loading}
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
               >
-                <option>Any country</option>
-                <option>Germany</option>
-                <option>China</option>
-                <option>Turkey</option>
-                <option>Egypt</option>
-                <option>India</option>
-                <option>Italy</option>
-                <option>United States</option>
+                <option value="">Any country</option>
+
+                {countries.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* Supplier Type */}
             <div>
-              <label className="block font-semibold mb-2">
-                Supplier Type
+              <label
+                htmlFor="quantity"
+                className="mb-2 block text-sm font-semibold text-gray-900"
+              >
+                Quantity
               </label>
 
-              <select
-                value={supplierType}
-                onChange={(e) => setSupplierType(e.target.value)}
-                className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white"
-              >
-                <option>Manufacturer</option>
-                <option>Wholesaler</option>
-                <option>Distributor</option>
-                <option>Trading Company</option>
-              </select>
-            </div>
-
-            {/* Budget */}
-            <div>
-              <label className="block font-semibold mb-2">
-                Estimated Budget
-              </label>
-
-              <select
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                className="w-full border border-gray-300 rounded-xl px-4 py-4 bg-white"
-              >
-                <option>Any budget</option>
-                <option>Under €5,000</option>
-                <option>€5,000 – €20,000</option>
-                <option>€20,000 – €50,000</option>
-                <option>€50,000+</option>
-              </select>
+              <input
+                id="quantity"
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(event) => setQuantity(event.target.value)}
+                placeholder="e.g. 10000"
+                disabled={loading}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
+              />
             </div>
           </div>
 
-          {/* Error */}
-          {errorMessage && (
-            <div className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-4">
-              {errorMessage}
-            </div>
-          )}
-
-          {/* Search Button */}
           <button
-            onClick={handleSearch}
+            type="submit"
             disabled={loading}
-            className="mt-8 bg-black text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-6 rounded-xl bg-black px-7 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading
-              ? "🤖 Portexa AI is checking..."
-              : "🔍 Find Suppliers with AI"}
+            {loading ? "Checking..." : "Find Suppliers with AI"}
           </button>
-        </div>
+        </form>
 
-        {/* Results */}
-        {searched && (
-          <div className="mt-10">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold">
-                  AI Recommended Suppliers
+        {result && (
+          <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+            {result.valid ? (
+              <>
+                <h2 className="text-xl font-bold text-green-600">
+                  ✓ Valid sourcing request
                 </h2>
 
-                <p className="text-gray-500 mt-1">
-                  Results for "{product}"
+                <div className="mt-4 space-y-2 text-gray-700">
+                  <p>
+                    <strong>Product:</strong>{" "}
+                    {result.product || product}
+                  </p>
+
+                  <p>
+                    <strong>Supplier country:</strong>{" "}
+                    {result.country || country || "Any country"}
+                  </p>
+
+                  <p>
+                    <strong>Quantity:</strong>{" "}
+                    {result.quantity || quantity || "Not specified"}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div>
+                <h2 className="text-xl font-bold text-red-600">
+                  Invalid request
+                </h2>
+
+                <p className="mt-2 text-gray-600">
+                  {result.message ||
+                    "Please enter a real product you want to source."}
                 </p>
               </div>
-
-              <div className="bg-black text-white px-4 py-2 rounded-full text-sm">
-                🤖 AI Match
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {suppliers.map((supplier) => (
-                <div
-                  key={supplier.name}
-                  className="bg-white rounded-3xl shadow-md p-6 hover:shadow-xl transition"
-                >
-                  <div className="text-4xl mb-4">🏭</div>
-
-                  <h3 className="text-xl font-bold">
-                    {supplier.name}
-                  </h3>
-
-                  <p className="text-gray-500 mt-2">
-                    {supplier.flag} {supplier.country}
-                  </p>
-
-                  <p className="text-gray-600 mt-4">
-                    {supplier.description}
-                  </p>
-
-                  <div className="mt-5 flex gap-3">
-                    <button className="border border-gray-300 px-5 py-3 rounded-xl hover:bg-gray-100">
-                      View Supplier
-                    </button>
-
-                    <Link
-                      href={`/rfqs/create?supplier=${encodeURIComponent(
-                        supplier.name
-                      )}&country=${encodeURIComponent(
-                        supplier.country
-                      )}`}
-                      className="bg-black text-white px-5 py-3 rounded-xl hover:bg-gray-800 inline-block"
-                    >
-                      Request Quote
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+            )}
+          </section>
         )}
-      </section>
+
+        {validated && (
+          <section className="mt-8">
+            <div className="mb-5">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Supplier Matches
+              </h2>
+
+              <p className="mt-1 text-gray-600">
+                {country
+                  ? `Showing suppliers located in ${country}.`
+                  : "Showing suppliers from all countries."}
+              </p>
+            </div>
+
+            {filteredSuppliers.length === 0 ? (
+              <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  No matching suppliers found
+                </h3>
+
+                <p className="mt-2 text-gray-600">
+                  We do not have supplier records for this product and
+                  country yet.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredSuppliers.map((supplier) => (
+                  <article
+                    key={supplier.id}
+                    className="rounded-2xl bg-white p-6 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {supplier.name}
+                      </h3>
+
+                      {supplier.verified && (
+                        <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mt-3 text-gray-600">
+                      {supplier.country}
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      {supplier.category}
+                    </p>
+
+                    <div className="mt-5 flex items-center justify-between">
+                      <span className="font-semibold text-gray-900">
+                        ★ {supplier.rating}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
+                      >
+                        View Supplier
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
     </main>
   );
 }
+

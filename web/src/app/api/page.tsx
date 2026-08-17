@@ -1,70 +1,138 @@
-import OpenAI from "openai";
-import { NextResponse } from "next/server";
+"use client";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { FormEvent, useState } from "react";
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
+export default function SuppliersPage() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{
+    valid: boolean;
+    product?: string;
+    quantity?: string;
+    country?: string;
+    message?: string;
+  } | null>(null);
 
-    const query =
-      typeof body.query === "string" ? body.query.trim() : "";
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-    if (!query) {
-      return NextResponse.json({
+    if (!query.trim()) {
+      setResult({
         valid: false,
         message: "Please tell me what product you want to source.",
       });
+      return;
     }
 
-    const response = await openai.responses.create({
-      model: "gpt-5.6",
-      instructions: `
-You are Portexa AI, an assistant for global importers.
+    setLoading(true);
+    setResult(null);
 
-Analyze the user's request and determine whether it is a genuine
-product sourcing or supplier request.
+    try {
+      const response = await fetch("/api/suppliers/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: query.trim(),
+        }),
+      });
 
-Return ONLY JSON in this exact format:
+      const data = await response.json();
 
-{
-  "valid": true,
-  "product": "",
-  "quantity": "",
-  "country": "",
-  "message": ""
-}
+      if (!response.ok) {
+        throw new Error(data.message || "Validation failed.");
+      }
 
-Rules:
-- valid=true if the request involves buying, sourcing, importing,
-  manufacturing, or finding suppliers for a product.
-- Understand natural language.
-- Extract the product.
-- Extract quantity if provided.
-- Extract country if provided.
-- If the request is unrelated or does not describe a product,
-  valid=false.
-- For invalid requests, message should briefly ask the user to
-  describe the product they want to source.
-`,
-      input: query,
-    });
+      setResult(data);
+    } catch (error) {
+      console.error(error);
 
-    const result = JSON.parse(response.output_text);
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("Portexa AI validation error:", error);
-
-    return NextResponse.json(
-      {
+      setResult({
         valid: false,
-        message:
-          "Portexa AI is temporarily unavailable. Please try again.",
-      },
-      { status: 500 }
-    );
+        message: "Portexa AI could not check your request.",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
+
+  return (
+    <main className="min-h-screen bg-gray-100 p-8">
+      <div className="mx-auto max-w-3xl">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Find Suppliers
+        </h1>
+
+        <p className="mt-2 text-gray-600">
+          Tell Portexa AI what product you want to source.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-8">
+          <input
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="e.g. shoes, cosmetic bottles, football shoes"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-4 rounded-xl bg-black px-6 py-3 font-medium text-white disabled:opacity-50"
+          >
+            {loading ? "Checking..." : "Find Suppliers with AI"}
+          </button>
+        </form>
+
+        {result && (
+          <div className="mt-8 rounded-xl bg-white p-6 shadow">
+            {result.valid ? (
+              <>
+                <h2 className="text-xl font-semibold text-green-600">
+                  Valid sourcing request
+                </h2>
+
+                <p className="mt-3 text-gray-800">
+                  Product:{" "}
+                  <strong>{result.product || query}</strong>
+                </p>
+
+                {result.quantity && (
+                  <p className="mt-1 text-gray-600">
+                    Quantity: {result.quantity}
+                  </p>
+                )}
+
+                {result.country && (
+                  <p className="mt-1 text-gray-600">
+                    Country: {result.country}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-white"
+                >
+                  Show Suppliers
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-xl font-semibold text-red-600">
+                  Not a sourcing request
+                </h2>
+
+                <p className="mt-3 text-gray-600">
+                  {result.message ||
+                    "Please describe a product you want to source."}
+                </p>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </main>
+  );
 }
