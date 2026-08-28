@@ -70,7 +70,12 @@ export async function POST(request: Request) {
     );
 
     const raw = await response.text();
-
+console.log("VesselFinder status:", response.status);
+console.log(
+  "VesselFinder X-API-ERROR:",
+  response.headers.get("X-API-ERROR")
+);
+console.log("VesselFinder raw response:", raw);
     if (!response.ok) {
       console.error("VesselFinder API error:", raw);
 

@@ -1,138 +1,274 @@
-"use client";
+import { NextResponse } from "next/server";
 
-import { FormEvent, useState } from "react";
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
 
-export default function SuppliersPage() {
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{
-    valid: boolean;
-    product?: string;
-    quantity?: string;
-    country?: string;
-    message?: string;
-  } | null>(null);
+    const imo =
+      typeof body?.imo === "string" ? body.imo.trim() : "";
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+    const mmsi =
+      typeof body?.mmsi === "string" ? body.mmsi.trim() : "";
 
-    if (!query.trim()) {
-      setResult({
-        valid: false,
-        message: "Please tell me what product you want to source.",
-      });
-      return;
+    if (!imo && !mmsi) {
+      return NextResponse.json(
+        { error: "Please enter an IMO or MMSI number." },
+        { status: 400 }
+      );
     }
 
-    setLoading(true);
-    setResult(null);
+    if (imo && mmsi) {
+      return NextResponse.json(
+        { error: "Enter either an IMO or an MMSI, not both." },
+        { status: 400 }
+      );
+    }
+
+    if (imo && !/^\d+$/.test(imo)) {
+      return NextResponse.json(
+        { error: "IMO must contain numbers only." },
+        { status: 400 }
+      );
+    }
+
+    if (mmsi && !/^\d+$/.test(mmsi)) {
+      return NextResponse.json(
+        { error: "MMSI must contain numbers only." },
+        { status: 400 }
+      );
+    }
+
+    const apiKey = process.env.VESSELFINDER_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "VesselFinder API key is missing." },
+        { status: 500 }
+      );
+    }
+
+    const params = new URLSearchParams({
+      userkey: apiKey,
+      format: "json",
+      interval: "60",
+      errormode: "409",
+    });
+
+    if (imo) {
+      params.set("imo", imo);
+    }
+
+    if (mmsi) {
+      params.set("mmsi", mmsi);
+    }
+
+    const response = await fetch(
+      `https://api.vesselfinder.com/vessels?${params.toString()}`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    const raw = await response.text();
+
+    console.log("===== VesselFinder DEBUG =====");
+    console.log("Status:", response.status);
+    console.log(
+      "X-API-ERROR:",
+      response.headers.get("X-API-ERROR")
+    );
+    console.log("Raw response:", raw);
+    console.log("==============================");
+
+    /*
+     * VesselFinder may return an API error even when HTTP status
+     * handling is not what we expect, so inspect both the header
+     * and body before trying to read vessel data.
+     */
+
+    const apiErrorHeader =
+      response.headers.get("X-API-ERROR");
+
+    if (apiErrorHeader) {
+      return NextResponse.json(
+        {
+          error: `VesselFinder: ${apiErrorHeader}`,
+        },
+        { status: 502 }
+      );
+    }
+
+    let data: unknown;
 
     try {
-      const response = await fetch("/api/suppliers/validate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      data = JSON.parse(raw);
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            "VesselFinder returned an invalid response.",
         },
-        body: JSON.stringify({
-          query: query.trim(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Validation failed.");
-      }
-
-      setResult(data);
-    } catch (error) {
-      console.error(error);
-
-      setResult({
-        valid: false,
-        message: "Portexa AI could not check your request.",
-      });
-    } finally {
-      setLoading(false);
+        { status: 502 }
+      );
     }
+
+    /*
+     * API error returned as JSON.
+     */
+    if (
+      typeof data === "object" &&
+      data !== null &&
+      "error" in data
+    ) {
+      const errorValue = (
+        data as Record<string, unknown>
+      ).error;
+
+      return NextResponse.json(
+        {
+          error: `VesselFinder: ${String(errorValue)}`,
+        },
+        { status: 502 }
+      );
+    }
+
+    /*
+     * HTTP error.
+     */
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          error:
+            "VesselFinder could not return vessel data.",
+        },
+        { status: response.status }
+      );
+    }
+
+    /*
+     * No vessel records.
+     */
+    if (!Array.isArray(data) || data.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "VesselFinder returned no vessel for this IMO or MMSI.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const firstResult = data[0];
+
+    if (
+      typeof firstResult !== "object" ||
+      firstResult === null
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "VesselFinder returned an invalid vessel record.",
+        },
+        { status: 502 }
+      );
+    }
+
+    const result =
+      firstResult as Record<string, unknown>;
+
+    if (!("AIS" in result)) {
+      return NextResponse.json(
+        {
+          error:
+            "Vessel was found, but no AIS data is available.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const ais = result.AIS;
+
+    if (
+      typeof ais !== "object" ||
+      ais === null
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "AIS data is unavailable for this vessel.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const vessel =
+      ais as Record<string, unknown>;
+
+    return NextResponse.json({
+      vessel: {
+        name: String(vessel.NAME ?? ""),
+        imo: String(vessel.IMO ?? ""),
+        mmsi: String(vessel.MMSI ?? ""),
+
+        latitude:
+          typeof vessel.LATITUDE === "number"
+            ? vessel.LATITUDE
+            : null,
+
+        longitude:
+          typeof vessel.LONGITUDE === "number"
+            ? vessel.LONGITUDE
+            : null,
+
+        speed:
+          typeof vessel.SPEED === "number"
+            ? vessel.SPEED
+            : null,
+
+        course:
+          typeof vessel.COURSE === "number"
+            ? vessel.COURSE
+            : null,
+
+        heading:
+          typeof vessel.HEADING === "number"
+            ? vessel.HEADING
+            : null,
+
+        destination: String(
+          vessel.DESTINATION ?? ""
+        ),
+
+        eta: String(
+          vessel.ETA ?? ""
+        ),
+
+        timestamp: String(
+          vessel.TIMESTAMP ?? ""
+        ),
+
+        zone: String(
+          vessel.ZONE ?? ""
+        ),
+
+        status:
+          typeof vessel.NAVSTAT === "number"
+            ? vessel.NAVSTAT
+            : null,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Shipment tracking error:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Shipment tracking is temporarily unavailable.",
+      },
+      { status: 500 }
+    );
   }
-
-  return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Find Suppliers
-        </h1>
-
-        <p className="mt-2 text-gray-600">
-          Tell Portexa AI what product you want to source.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-8">
-          <input
-            type="text"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="e.g. shoes, cosmetic bottles, football shoes"
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-4 rounded-xl bg-black px-6 py-3 font-medium text-white disabled:opacity-50"
-          >
-            {loading ? "Checking..." : "Find Suppliers with AI"}
-          </button>
-        </form>
-
-        {result && (
-          <div className="mt-8 rounded-xl bg-white p-6 shadow">
-            {result.valid ? (
-              <>
-                <h2 className="text-xl font-semibold text-green-600">
-                  Valid sourcing request
-                </h2>
-
-                <p className="mt-3 text-gray-800">
-                  Product:{" "}
-                  <strong>{result.product || query}</strong>
-                </p>
-
-                {result.quantity && (
-                  <p className="mt-1 text-gray-600">
-                    Quantity: {result.quantity}
-                  </p>
-                )}
-
-                {result.country && (
-                  <p className="mt-1 text-gray-600">
-                    Country: {result.country}
-                  </p>
-                )}
-
-                <button
-                  type="button"
-                  className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-white"
-                >
-                  Show Suppliers
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="text-xl font-semibold text-red-600">
-                  Not a sourcing request
-                </h2>
-
-                <p className="mt-3 text-gray-600">
-                  {result.message ||
-                    "Please describe a product you want to source."}
-                </p>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </main>
-  );
 }
