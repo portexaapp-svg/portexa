@@ -11,29 +11,29 @@ type VesselMapProps = {
   destination: string;
   speed: number | null;
   course: number | null;
+  heading: number | null;
 };
 
 const vesselIcon = L.divIcon({
   className: "",
   html: `
     <div style="
-      width: 42px;
-      height: 42px;
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
       background: #111827;
       border: 4px solid white;
-      box-shadow: 0 4px 14px rgba(0,0,0,.35);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 20px;
+      font-size: 23px;
     ">
       🚢
     </div>
   `,
-  iconSize: [42, 42],
-  iconAnchor: [21, 21],
+  iconSize: [46, 46],
+  iconAnchor: [23, 23],
 });
 
 export default function VesselMap({
@@ -43,17 +43,37 @@ export default function VesselMap({
   destination,
   speed,
   course,
+  heading,
 }: VesselMapProps) {
   return (
     <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200">
+      <div className="flex items-center justify-between bg-white px-5 py-4">
+        <div>
+          <p className="text-sm font-semibold text-gray-900">
+            Current Vessel Position
+          </p>
+
+          <p className="mt-1 text-xs text-gray-500">
+            Live AIS location
+          </p>
+        </div>
+
+        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+          ● LIVE
+        </span>
+      </div>
+
       <MapContainer
         center={[latitude, longitude]}
         zoom={6}
         scrollWheelZoom={true}
-        style={{ height: "420px", width: "100%" }}
+        style={{
+          height: "420px",
+          width: "100%",
+        }}
       >
         <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
+          attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
@@ -62,24 +82,26 @@ export default function VesselMap({
           icon={vesselIcon}
         >
           <Popup>
-            <div className="min-w-[180px]">
-              <strong>{vesselName || "Unknown Vessel"}</strong>
+            <strong>{vesselName || "Unknown Vessel"}</strong>
 
-              <div className="mt-2 text-sm">
-                <div>
-                  Destination:{" "}
-                  {destination || "Unknown"}
-                </div>
+            <div className="mt-2 text-sm">
+              <div>
+                Destination: {destination || "Unknown"}
+              </div>
 
-                <div>
-                  Speed:{" "}
-                  {speed !== null ? `${speed} knots` : "N/A"}
-                </div>
+              <div>
+                Speed:{" "}
+                {speed !== null ? `${speed} knots` : "N/A"}
+              </div>
 
-                <div>
-                  Course:{" "}
-                  {course !== null ? `${course}°` : "N/A"}
-                </div>
+              <div>
+                Course:{" "}
+                {course !== null ? `${course}°` : "N/A"}
+              </div>
+
+              <div>
+                Heading:{" "}
+                {heading !== null ? `${heading}°` : "N/A"}
               </div>
             </div>
           </Popup>
