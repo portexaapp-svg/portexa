@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -41,6 +40,13 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.VESSELFINDER_API_KEY;
 
+    console.log(
+      "VesselFinder key loaded:",
+      Boolean(apiKey),
+      "length:",
+      apiKey?.length ?? 0
+    );
+
     if (!apiKey) {
       return NextResponse.json(
         { error: "VesselFinder API key is missing." },
@@ -70,18 +76,21 @@ export async function POST(request: Request) {
     );
 
     const raw = await response.text();
-console.log("VesselFinder status:", response.status);
-console.log(
-  "VesselFinder X-API-ERROR:",
-  response.headers.get("X-API-ERROR")
-);
-console.log("VesselFinder raw response:", raw);
-    if (!response.ok) {
-      console.error("VesselFinder API error:", raw);
 
+    const apiError = response.headers.get("X-API-ERROR");
+
+    console.log("VesselFinder status:", response.status);
+    console.log("VesselFinder X-API-ERROR:", apiError);
+    console.log("VesselFinder raw response:", raw);
+
+    // IMPORTANT:
+    // VesselFinder can return HTTP 200 even when the API key is invalid.
+    if (apiError) {
       return NextResponse.json(
-        { error: "VesselFinder could not return vessel data." },
-        { status: response.status }
+        {
+          error: `VesselFinder: ${apiError}`,
+        },
+        { status: 502 }
       );
     }
 
@@ -90,17 +99,48 @@ console.log("VesselFinder raw response:", raw);
     try {
       data = JSON.parse(raw);
     } catch {
-      console.error("Invalid VesselFinder JSON:", raw);
+      return NextResponse.json(
+        {
+          error: "VesselFinder returned an invalid response.",
+        },
+        { status: 502 }
+      );
+    }
+
+    // Handle errors returned inside JSON.
+    if (
+      typeof data === "object" &&
+      data !== null &&
+      "error" in data
+    ) {
+      const errorValue = (
+        data as Record<string, unknown>
+      ).error;
 
       return NextResponse.json(
-        { error: "VesselFinder returned invalid data." },
+        {
+          error: `VesselFinder: ${String(errorValue)}`,
+        },
         { status: 502 }
+      );
+    }
+
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          error:
+            "VesselFinder could not return vessel data.",
+        },
+        { status: response.status }
       );
     }
 
     if (!Array.isArray(data) || data.length === 0) {
       return NextResponse.json(
-        { error: "No vessel found for that IMO or MMSI." },
+        {
+          error:
+            "VesselFinder returned no vessel for this IMO or MMSI.",
+        },
         { status: 404 }
       );
     }
@@ -109,55 +149,95 @@ console.log("VesselFinder raw response:", raw);
 
     if (
       typeof firstResult !== "object" ||
-      firstResult === null ||
-      !("AIS" in firstResult)
+      firstResult === null
     ) {
       return NextResponse.json(
-        { error: "No AIS data was returned for this vessel." },
-        { status: 404 }
+        {
+          error:
+            "VesselFinder returned an invalid vessel record.",
+        },
+        { status: 502 }
       );
     }
 
-    const ais = firstResult.AIS;
+    const result =
+      firstResult as Record<string, unknown>;
 
-    if (typeof ais !== "object" || ais === null) {
+    if (!("AIS" in result)) {
       return NextResponse.json(
-        { error: "AIS data is unavailable." },
+        {
+          error:
+            "Vessel was found, but no AIS data is available.",
+        },
         { status: 404 }
       );
     }
 
-    const vessel = ais as Record<string, unknown>;
+    const ais = result.AIS;
+
+    if (
+      typeof ais !== "object" ||
+      ais === null
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "AIS data is unavailable for this vessel.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const vessel =
+      ais as Record<string, unknown>;
 
     return NextResponse.json({
       vessel: {
         name: String(vessel.NAME ?? ""),
         imo: String(vessel.IMO ?? ""),
         mmsi: String(vessel.MMSI ?? ""),
+
         latitude:
           typeof vessel.LATITUDE === "number"
             ? vessel.LATITUDE
             : null,
+
         longitude:
           typeof vessel.LONGITUDE === "number"
             ? vessel.LONGITUDE
             : null,
+
         speed:
           typeof vessel.SPEED === "number"
             ? vessel.SPEED
             : null,
+
         course:
           typeof vessel.COURSE === "number"
             ? vessel.COURSE
             : null,
+
         heading:
           typeof vessel.HEADING === "number"
             ? vessel.HEADING
             : null,
-        destination: String(vessel.DESTINATION ?? ""),
-        eta: String(vessel.ETA ?? ""),
-        timestamp: String(vessel.TIMESTAMP ?? ""),
-        zone: String(vessel.ZONE ?? ""),
+
+        destination: String(
+          vessel.DESTINATION ?? ""
+        ),
+
+        eta: String(
+          vessel.ETA ?? ""
+        ),
+
+        timestamp: String(
+          vessel.TIMESTAMP ?? ""
+        ),
+
+        zone: String(
+          vessel.ZONE ?? ""
+        ),
+
         status:
           typeof vessel.NAVSTAT === "number"
             ? vessel.NAVSTAT
@@ -165,11 +245,15 @@ console.log("VesselFinder raw response:", raw);
       },
     });
   } catch (error) {
-    console.error("Shipment tracking error:", error);
+    console.error(
+      "Shipment tracking error:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "Shipment tracking is temporarily unavailable.",
+        error:
+          "Shipment tracking is temporarily unavailable.",
       },
       { status: 500 }
     );
